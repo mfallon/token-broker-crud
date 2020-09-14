@@ -1,13 +1,6 @@
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-<!-- PROJECT LOGO -->
-<br />
-<p align="center">
-  <a href="https://github.com/github_username/repo_name">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-  <h3 align="center">Trusted Service Broker</h3>
-</p>
+# Trusted Service Broker
 
 ## Table of Contents
 
@@ -21,14 +14,7 @@
 
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started:
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`github_username`, `repo_name`, `twitter_handle`, `email`
-
-
-### Built With
+Built on the MERN stack:
 
 * [MongoDb](https://www.mongodb.com/try/download/community)
 * [Express](https://www.npmjs.com/package/express)
@@ -38,16 +24,30 @@ Here's a blank template to get started:
 
 ## Getting Started
 
-If you have docker installed you can run the repo in containers with docker-compose.
+If you have docker installed you can run the repo in containers with docker-compose:
 
-### Prerequisites
+1. Clone the repo
+```sh
+git clone https://github.com/mfallon/token-broker-crud.git
+```
+2. cd into the project directory and run
+```sh
+docker-compose up --build
+```
+3. Use curl to generate a token with the provided payloads
+```sh
+curl -X POST -d @example-payload-1.json -H "Content-Type: application/json" http://localhost:8081/generate
+```
+4. Open the frontend on `http://localhost:1234` and paste the returned token into the 'add new claim' field
+
+If the token is valid, it will add the invoice record to the claims list.
+
+### Local Installation
 
 Developed on a MERN stack, you'll require the following packages to run locally.
 
-* node:12 
+* node:12 & npm 
 * mongodb
-
-### Installation
 
 1. Clone the repo
 ```sh
@@ -59,7 +59,7 @@ cd acme-fe && npm install
 cd acme-api && npm install
 cd broker-api && npm install
 ```
-3. cd into `acme-fe` and run `npm start` or if you have docker installed run `docker-compose up --build`
+3. Start all services and frontend with:
 ```sh
 cd acme-fe
 npm start
