@@ -7,36 +7,14 @@ const config = {
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
-  },
-  // transformRequest:
-  // transformResponse:
-  // params
-  // data
-  // paramsSerializer
-  // timeout
-  // withCredentials
-  // adapter
-  // auth
-  // responseType: 'json' // default
-  // responseEncoding: 'utf8'
-  // xsrfCookieName: 'XSRF-TOKEN'
-  // xsrfHeaderName: 'X-XSRF-TOKEN', // default
-  // onUploadProgress:
-  // onDownloadProgress:
-  // maxContentLength:
-  // validateStatus:
-  // maxRedirects:
-  // socketPath:
-  // httpAgent:
-  // httpsAgent:
-  // proxy:
-  // cancelToken:
+  }
 };
 
 const errorHandler = err => {
   if (err.response) {
     // handle 4XX, 5XX errors
-    console.log(`Error response ${err.status} from API`, err);
+    const message = `Error response ${err.status} from API`;
+    console.log(message, err);
   } else if (err.request) {
     // no response
     console.log('No response from API:', err.request);
@@ -49,21 +27,18 @@ export default {
   getIssues: callback => {
     axios.get('', {
       ...config,
-      // translates issues array to object keyed on '_id'
       transformResponse: [res => _.keyBy(JSON.parse(res), o => o.id)]
     })
       .then(res => callback(res))
       .catch(err => errorHandler(err));
   },
-  addIssue: (issue, callback) => {
-    axios.post('', issue, { ...config })
+  addIssue: (item, callback, fail) => {
+    axios.post('', item, { ...config })
       .then(res => callback(res))
-      .catch(err => errorHandler(err));
-  },
-  editIssue: (id, issue, callback) => {
-    axios.put(`/${id}`, issue, { ...config })
-      .then(res => callback(res))
-      .catch(err => errorHandler(err));
+      .catch(err => {
+        errorHandler(err);
+        fail(err);
+      });
   },
   deleteIssue: (id, callback) => {
     axios.delete(`/${id}`, { ...config })

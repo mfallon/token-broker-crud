@@ -6,6 +6,8 @@ var _express = _interopRequireDefault(require("express"));
 
 var _mongo = _interopRequireDefault(require("../db/mongo"));
 
+var _api = _interopRequireDefault(require("../services/api"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 var router = _express["default"].Router();
@@ -17,7 +19,7 @@ router.get('/', function (req, res, next) {
   _mongo["default"].getAll().then(function (items) {
     res.json(items);
   })["catch"](function (error) {
-    var message = "Could not getAll() because: ".concat(error);
+    var message = "Could not getAll() because: " + error;
     console.log(message);
     res.json({
       error: message
@@ -29,37 +31,45 @@ router.get('/', function (req, res, next) {
  */
 
 router.post('/', function (req, res) {
-  var _req$body = req.body,
-      description = _req$body.description,
-      severity = _req$body.severity,
-      created = _req$body.created,
-      status = _req$body.status;
+  console.log(req.body);
+  var token = req.body.token;
 
-  if (!description) {
+  if (!token) {
     res.status(400).end('Bad Request');
     return;
-  }
+  } // TODO: check token with service and save if ok
 
-  var payload = {
-    description: description,
-    severity: severity || 'minor',
-    status: status || 'open',
-    created: created || new Date().toISOString(),
-    resolved: ''
-  };
 
-  _mongo["default"].save(payload).then(function (id) {
-    console.log(id);
-    res.status(200).json({
-      id: id
-    });
-  })["catch"](function (err) {
-    var message = "There was an error saving your item: ".concat(err);
-    console.log(message);
-    res.json({
-      error: message
-    });
+  _api["default"].validate(token, function (res) {
+    console.log(res.status);
+
+    if (404 === res.status) {
+      console.log("token not found");
+    } else if (200 === res.status) {
+      res.json({
+        message: "pending"
+      });
+    } else {
+      console.log("some other issue");
+    }
   });
+  /*
+  mongo.save(payload)
+    .then(id => {
+      console.log(id);
+      res.status(200).json({
+        id
+      });
+    })
+    .catch(err => {
+      const message = `There was an error saving your item: ${err}`;
+      console.log(message);
+      res.json({
+        error: message
+      });
+    });
+    */
+
 });
 /**
  * Edit - Get
@@ -76,7 +86,7 @@ router.get('/:id', function (req, res) {
   _mongo["default"].get(id).then(function (item) {
     res.status(200).json(item);
   })["catch"](function (err) {
-    var message = "There was an error getting your item: ".concat(err);
+    var message = "There was an error getting your item: " + err;
     console.log(message);
     res.json({
       error: message
@@ -89,11 +99,11 @@ router.get('/:id', function (req, res) {
 
 router.put('/:id', function (req, res) {
   var id = req.params.id;
-  var _req$body2 = req.body,
-      description = _req$body2.description,
-      severity = _req$body2.severity,
-      status = _req$body2.status,
-      created = _req$body2.created;
+  var _req$body = req.body,
+      description = _req$body.description,
+      severity = _req$body.severity,
+      status = _req$body.status,
+      created = _req$body.created;
 
   if (!id || !description) {
     res.status(400).end('Bad Request');
@@ -113,7 +123,7 @@ router.put('/:id', function (req, res) {
       id: id
     });
   })["catch"](function (err) {
-    var message = "There was an error updating your item: ".concat(err);
+    var message = "There was an error updating your item: " + err;
     console.log(message);
     res.json({
       error: message
@@ -137,7 +147,7 @@ router["delete"]('/:id', function (req, res) {
       status: status
     });
   })["catch"](function (err) {
-    var message = "There was an error deleting your item: ".concat(err);
+    var message = "There was an error deleting your item: " + err;
     console.log(message);
     res.json({
       error: message

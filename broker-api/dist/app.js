@@ -39,6 +39,6 @@ app.use(function (err, req, res, next) {
 var HOST = "0.0.0.0";
 var PORT = "8081";
 app.listen(PORT, HOST, function () {
-  console.log("Broker API listening on ".concat(HOST, ":").concat(PORT));
+  console.log("Broker API listening on " + HOST + ":" + PORT);
 });
 module.exports = app;

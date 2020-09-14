@@ -1,13 +1,15 @@
 {
-  "name": "item-crud",
+  "name": "acme-fe",
   "version": "0.0.2",
-  "description": "A generic item crud frontend built in react",
+  "description": "",
   "repository": "",
   "private": true,
   "scripts": {
     "build": "parcel build -d ./dist index.html",
     "start": "parcel index.html",
-    "dev": "cd ../broker-api && npm run start"
+    "dev:broker": "cd ../broker-api && npm run start",
+    "dev:api": "cd ../acme-api && npm run start",
+    "dev": "concurrently --kill-others \"npm run dev:broker\" \"npm run dev:api\" \"parcel index.html\""
   },
   "license": "MIT",
   "dependencies": {
@@ -26,6 +28,7 @@
   "devDependencies": {
     "@babel/core": "^7.11.6",
     "babel-preset-nano-react-app": "^0.1.0",
+    "concurrently": "^5.3.0",
     "parcel-bundler": "^1.12.4",
     "react-redux": "^7.2.1",
     "redux": "^4.0.5"

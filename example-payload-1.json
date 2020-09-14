@@ -1,0 +1,16 @@
+{
+ "subject": {
+   "name": "Jane Doe",
+   "address": "128 O'Connel Street, Dublin",
+   "policyNumber": "XN012345"
+ },
+ "object": {
+   "provider": "Hospital-987",
+   "ref": "inv-321",
+   "type": "Invoice",
+   "dept": "Neonatal",
+   "service": "Scan",
+   "amount": "80.44",
+   "currency": "Euro"
+ }
+}

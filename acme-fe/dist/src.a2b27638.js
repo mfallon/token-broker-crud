@@ -99427,36 +99427,14 @@ var config = {
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
-  } // transformRequest:
-  // transformResponse:
-  // params
-  // data
-  // paramsSerializer
-  // timeout
-  // withCredentials
-  // adapter
-  // auth
-  // responseType: 'json' // default
-  // responseEncoding: 'utf8'
-  // xsrfCookieName: 'XSRF-TOKEN'
-  // xsrfHeaderName: 'X-XSRF-TOKEN', // default
-  // onUploadProgress:
-  // onDownloadProgress:
-  // maxContentLength:
-  // validateStatus:
-  // maxRedirects:
-  // socketPath:
-  // httpAgent:
-  // httpsAgent:
-  // proxy:
-  // cancelToken:
-
+  }
 };
 
 var errorHandler = function errorHandler(err) {
   if (err.response) {
     // handle 4XX, 5XX errors
-    console.log("Error response ".concat(err.status, " from API"), err);
+    var message = "Error response ".concat(err.status, " from API");
+    console.log(message, err);
   } else if (err.request) {
     // no response
     console.log('No response from API:', err.request);
@@ -99468,7 +99446,6 @@ var errorHandler = function errorHandler(err) {
 var _default = {
   getIssues: function getIssues(callback) {
     _axios.default.get('', _objectSpread(_objectSpread({}, config), {}, {
-      // translates issues array to object keyed on '_id'
       transformResponse: [function (res) {
         return _lodash.default.keyBy(JSON.parse(res), function (o) {
           return o.id;
@@ -99480,18 +99457,12 @@ var _default = {
       return errorHandler(err);
     });
   },
-  addIssue: function addIssue(issue, callback) {
-    _axios.default.post('', issue, _objectSpread({}, config)).then(function (res) {
+  addIssue: function addIssue(item, callback, fail) {
+    _axios.default.post('', item, _objectSpread({}, config)).then(function (res) {
       return callback(res);
     }).catch(function (err) {
-      return errorHandler(err);
-    });
-  },
-  editIssue: function editIssue(id, issue, callback) {
-    _axios.default.put("/".concat(id), issue, _objectSpread({}, config)).then(function (res) {
-      return callback(res);
-    }).catch(function (err) {
-      return errorHandler(err);
+      errorHandler(err);
+      fail(err);
     });
   },
   deleteIssue: function deleteIssue(id, callback) {
@@ -99509,7 +99480,7 @@ exports.default = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.deleteIssue = exports.addIssue = exports.updateIssue = exports.getIssues = exports.setAlert = exports.getIssuesReceived = exports.issueDeleted = exports.issueEdited = exports.issueAdded = exports.SET_ALERT = exports.ISSUE_DELETED = exports.ISSUE_ADDED = exports.ISSUE_EDITED = exports.GET_ISSUES_RECEIVED = void 0;
+exports.deleteIssue = exports.addIssue = exports.getIssues = exports.setAlert = exports.getIssuesReceived = exports.issueDeleted = exports.issueAdded = exports.SET_ALERT = exports.ISSUE_DELETED = exports.ISSUE_ADDED = exports.GET_ISSUES_RECEIVED = void 0;
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
@@ -99523,8 +99494,6 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 var GET_ISSUES_RECEIVED = 'GET_ISSUES_RECEIVED';
 exports.GET_ISSUES_RECEIVED = GET_ISSUES_RECEIVED;
-var ISSUE_EDITED = 'ISSUE_EDITED';
-exports.ISSUE_EDITED = ISSUE_EDITED;
 var ISSUE_ADDED = 'ISSUE_ADDED';
 exports.ISSUE_ADDED = ISSUE_ADDED;
 var ISSUE_DELETED = 'ISSUE_DELETED';
@@ -99540,15 +99509,6 @@ var issueAdded = function issueAdded(payload) {
 };
 
 exports.issueAdded = issueAdded;
-
-var issueEdited = function issueEdited(payload) {
-  return {
-    type: ISSUE_EDITED,
-    payload: payload
-  };
-};
-
-exports.issueEdited = issueEdited;
 
 var issueDeleted = function issueDeleted(payload) {
   return {
@@ -99586,30 +99546,18 @@ var getIssues = function getIssues(dispatch) {
 
 exports.getIssues = getIssues;
 
-var updateIssue = function updateIssue(id, issue, callback, dispatch) {
-  _api.default.editIssue(id, issue, function (res) {
-    var id = res.data.id;
-    var updated = {};
-    updated[id] = _objectSpread({
-      id: id
-    }, issue);
-    dispatch(issueEdited(updated));
-    dispatch(setAlert("Issue ".concat(id, " Updated OK!")));
-    callback();
-  });
-};
-
-exports.updateIssue = updateIssue;
-
-var addIssue = function addIssue(issue, callback, dispatch) {
-  _api.default.addIssue(issue, function (res) {
+var addIssue = function addIssue(item, callback, dispatch) {
+  _api.default.addIssue(item, function (res) {
     var id = res.data.id;
     var added = {};
     added[id] = _objectSpread({
       id: id
-    }, issue);
+    }, res.data);
     dispatch(issueAdded(added));
-    dispatch(setAlert("Issue ".concat(id, " Added OK!")));
+    dispatch(setAlert("Claim Added OK!"));
+    callback();
+  }, function (err) {
+    dispatch(setAlert("Could not create claim: error with provided code"));
     callback();
   });
 };
@@ -99619,7 +99567,7 @@ exports.addIssue = addIssue;
 var deleteIssue = function deleteIssue(id, dispatch, callback) {
   _api.default.deleteIssue(id, function (res) {
     dispatch(issueDeleted(id));
-    dispatch(setAlert("Issue ".concat(id, " Deleted!")));
+    dispatch(setAlert("Claim Deleted!"));
     callback();
   });
 };
@@ -99732,13 +99680,6 @@ function (_Component) {
         });
       }, ms);
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setToggle", function (evt) {
-      var id = evt.target.id;
-      var toggle = {};
-      toggle[id] = evt.target.checked;
-
-      _this.setState(toggle);
-    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setFilter", function (evt) {
       var value = evt.target.value;
 
@@ -99754,9 +99695,6 @@ function (_Component) {
       });
     });
     _this.state = {
-      severity: true,
-      status: true,
-      created: true,
       filter: '',
       showAlert: false
     };
@@ -99777,8 +99715,7 @@ function (_Component) {
       if (!_lodash.default.isEmpty(this.props.alert)) {
         this.setAlertTimeout();
       }
-    } // trying to capture when the alert message is updated in props
-
+    }
   }, {
     key: "shouldComponentUpdate",
     value: function shouldComponentUpdate(nextProps) {
@@ -99798,19 +99735,15 @@ function (_Component) {
           deleteIssue = _this$props2.deleteIssue,
           alert = _this$props2.alert;
       var pushHistory = this.props.history.push;
-      var _this$state = this.state,
-          severity = _this$state.severity,
-          status = _this$state.status,
-          created = _this$state.created,
-          showAlert = _this$state.showAlert;
+      var showAlert = this.state.showAlert;
 
       var _items = (0, _slicedToArray2.default)(items, 2),
-          unresolved = _items[0],
-          resolved = _items[1];
+          resolved = _items[0],
+          unresolved = _items[1];
 
-      var unresolvedFiltered = !_lodash.default.isEmpty(this.state.filter) ? unresolved.filter(function (item) {
+      var resolvedFiltered = !_lodash.default.isEmpty(this.state.filter) ? resolved.filter(function (item) {
         return new RegExp("".concat(_this2.state.filter), 'i').test(item.description);
-      }) : unresolved;
+      }) : resolved;
       return (
         /*#__PURE__*/
         _react.default.createElement("div", {
@@ -99822,9 +99755,9 @@ function (_Component) {
         }),
         /*#__PURE__*/
         _react.default.createElement(_Panel.default, {
-          title: "Unresolved Claims",
+          title: "Resolved Claims",
           panelClass: "bg-primary"
-        }, !_lodash.default.isEmpty(unresolvedFiltered) &&
+        },
         /*#__PURE__*/
         _react.default.createElement("div", null,
         /*#__PURE__*/
@@ -99846,7 +99779,7 @@ function (_Component) {
           className: "form-control form-control-filter",
           id: "filter",
           name: "filter",
-          placeholder: "filter issues by any word",
+          placeholder: "filter claims by description",
           onChange: this.setFilter
         }),
         /*#__PURE__*/
@@ -99865,167 +99798,10 @@ function (_Component) {
         /*#__PURE__*/
         _react.default.createElement("span", {
           "aria-hidden": "true"
-        }, "\xD7")))),
+        }, "\xD7"))))), !_lodash.default.isEmpty(resolvedFiltered) &&
         /*#__PURE__*/
         _react.default.createElement("div", {
-          className: "row filter pt-2"
-        },
-        /*#__PURE__*/
-        _react.default.createElement("label", {
-          className: "col-sm-5 control-label"
-        }, "Show/Hide Columns:"),
-        /*#__PURE__*/
-        _react.default.createElement("div", {
-          className: "col-sm-2 form-check"
-        },
-        /*#__PURE__*/
-        _react.default.createElement("input", {
-          className: "form-check-input",
-          type: "checkbox",
-          id: "severity",
-          name: "severity",
-          checked: severity,
-          onChange: this.setToggle
-        }),
-        /*#__PURE__*/
-        _react.default.createElement("label", {
-          className: "form-check-label",
-          htmlFor: "severity"
-        }, "Severity"), "\xA0"),
-        /*#__PURE__*/
-        _react.default.createElement("div", {
-          className: "col-sm-2 form-check"
-        },
-        /*#__PURE__*/
-        _react.default.createElement("input", {
-          className: "form-check-input",
-          type: "checkbox",
-          id: "status",
-          name: "status",
-          checked: status,
-          onChange: this.setToggle
-        }),
-        /*#__PURE__*/
-        _react.default.createElement("label", {
-          className: "form-check-label",
-          htmlFor: "status"
-        }, "Status"), "\xA0"),
-        /*#__PURE__*/
-        _react.default.createElement("div", {
-          className: "col-sm-2 form-check"
-        },
-        /*#__PURE__*/
-        _react.default.createElement("input", {
-          className: "form-check-input",
-          type: "checkbox",
-          id: "created",
-          name: "created",
-          checked: created,
-          onChange: this.setToggle
-        }),
-        /*#__PURE__*/
-        _react.default.createElement("label", {
-          className: "form-check-label",
-          htmlFor: "created"
-        }, "Created"), "\xA0")),
-        /*#__PURE__*/
-        _react.default.createElement("table", {
-          className: "table table-striped table-condensed"
-        },
-        /*#__PURE__*/
-        _react.default.createElement("thead", {
-          className: "text-white bg-secondary"
-        },
-        /*#__PURE__*/
-        _react.default.createElement("tr", null,
-        /*#__PURE__*/
-        _react.default.createElement("th", null, "Description"), severity &&
-        /*#__PURE__*/
-        _react.default.createElement("th", {
-          style: {
-            minWidth: '80px'
-          }
-        }, "Severity"), status &&
-        /*#__PURE__*/
-        _react.default.createElement("th", {
-          style: {
-            minWidth: '80px'
-          }
-        }, "Status"), created &&
-        /*#__PURE__*/
-        _react.default.createElement("th", {
-          style: {
-            minWidth: '80px'
-          }
-        }, "Created"),
-        /*#__PURE__*/
-        _react.default.createElement("th", null, " "),
-        /*#__PURE__*/
-        _react.default.createElement("th", null, " "))),
-        /*#__PURE__*/
-        _react.default.createElement("tbody", null, unresolvedFiltered.map(function (item) {
-          return (
-            /*#__PURE__*/
-            _react.default.createElement("tr", {
-              key: item.id
-            },
-            /*#__PURE__*/
-            _react.default.createElement("td", null,
-            /*#__PURE__*/
-            _react.default.createElement(_reactRouterDom.Link, {
-              to: "/detail/".concat(item.id)
-            }, item.description)), severity &&
-            /*#__PURE__*/
-            _react.default.createElement("td", null,
-            /*#__PURE__*/
-            _react.default.createElement("span", {
-              className: "badge badge-secondary ".concat(item.severity === 'major' ? 'badge-warning' : item.severity === 'critical' ? 'badge-danger' : '')
-            }, item.severity)), status &&
-            /*#__PURE__*/
-            _react.default.createElement("td", null,
-            /*#__PURE__*/
-            _react.default.createElement("span", {
-              className: "badge badge-secondary ".concat(item.status === 'in progress' ? 'badge-success' : item.status === 'open' ? 'badge-primary' : '')
-            }, item.status)), created &&
-            /*#__PURE__*/
-            _react.default.createElement("td", null, "".concat((0, _dateFns.formatDistance)(new Date(item.created), new Date()), " ago")),
-            /*#__PURE__*/
-            _react.default.createElement("td", null,
-            /*#__PURE__*/
-            _react.default.createElement("button", {
-              onClick: function onClick() {
-                return pushHistory("/edit/".concat(item.id));
-              },
-              className: "btn btn-sm btn-outline-primary"
-            }, "Edit")),
-            /*#__PURE__*/
-            _react.default.createElement("td", null,
-            /*#__PURE__*/
-            _react.default.createElement("button", {
-              onClick: function onClick() {
-                return deleteIssue(item.id, _this2.setAlertTimeout);
-              },
-              className: "btn btn-sm btn-outline-danger"
-            }, "Delete")))
-          );
-        })))), _lodash.default.isEmpty(unresolvedFiltered) &&
-        /*#__PURE__*/
-        _react.default.createElement("div", {
-          className: "alert alert-success text-center"
-        }, "There are no unresolved claims"),
-        /*#__PURE__*/
-        _react.default.createElement("div", {
-          className: "d-flex justify-content-end"
-        },
-        /*#__PURE__*/
-        _react.default.createElement(_reactRouterDom.Link, {
-          to: "/add",
-          className: "btn btn-primary"
-        }, "Add a new claim"))), !_lodash.default.isEmpty(resolved) &&
-        /*#__PURE__*/
-        _react.default.createElement(_Panel.default, {
-          title: "Resolved Claims",
-          panelClass: "bg-success"
+          className: "mt-3"
         },
         /*#__PURE__*/
         _react.default.createElement("table", {
@@ -100040,58 +99816,48 @@ function (_Component) {
         /*#__PURE__*/
         _react.default.createElement("th", null, "Description"),
         /*#__PURE__*/
-        _react.default.createElement("th", null, "Severity"),
+        _react.default.createElement("th", null, "Amount"),
         /*#__PURE__*/
-        _react.default.createElement("th", null, "Created"),
+        _react.default.createElement("th", null, "Issued"),
         /*#__PURE__*/
-        _react.default.createElement("th", null, "Closed"),
+        _react.default.createElement("th", null, " "))),
         /*#__PURE__*/
-        _react.default.createElement("th", null),
-        /*#__PURE__*/
-        _react.default.createElement("th", null))),
-        /*#__PURE__*/
-        _react.default.createElement("tbody", null, resolved.map(function (item) {
+        _react.default.createElement("tbody", null, resolvedFiltered.map(function (item) {
           return (
             /*#__PURE__*/
             _react.default.createElement("tr", {
               key: item.id
             },
             /*#__PURE__*/
-            _react.default.createElement("td", null,
+            _react.default.createElement("td", null, item.description),
             /*#__PURE__*/
-            _react.default.createElement(_reactRouterDom.Link, {
-              to: "/detail/".concat(item.id)
-            }, item.description)),
+            _react.default.createElement("td", null, item.currency + ' ' + item.amount),
             /*#__PURE__*/
-            _react.default.createElement("td", null,
-            /*#__PURE__*/
-            _react.default.createElement("span", {
-              className: "badge badge-secondary ".concat(item.severity === 'major' ? 'badge-warning' : item.severity === 'critical' ? 'badge-danger' : '')
-            }, item.severity)),
-            /*#__PURE__*/
-            _react.default.createElement("td", null, "".concat((0, _dateFns.format)(item.created, 'Do [of] MMM \'YY'))),
-            /*#__PURE__*/
-            _react.default.createElement("td", null, "".concat((0, _dateFns.format)(item.resolved, 'Do [of] MMM \'YY'))),
+            _react.default.createElement("td", null, "".concat(item.created ? (0, _dateFns.format)(new Date(item.created), "dd/MM/yyyy") : '')),
             /*#__PURE__*/
             _react.default.createElement("td", null,
             /*#__PURE__*/
             _react.default.createElement("button", {
               onClick: function onClick() {
-                return pushHistory("/edit/".concat(item.id));
-              },
-              className: "btn btn-sm btn-outline-primary"
-            }, "Edit")),
-            /*#__PURE__*/
-            _react.default.createElement("td", null,
-            /*#__PURE__*/
-            _react.default.createElement("button", {
-              onClick: function onClick() {
-                return deleteIssue(item.id, _this2.setAlertTimeoout);
+                return deleteIssue(item.id, _this2.setAlertTimeout);
               },
               className: "btn btn-sm btn-outline-danger"
             }, "Delete")))
           );
-        })))))
+        })))), _lodash.default.isEmpty(resolvedFiltered) &&
+        /*#__PURE__*/
+        _react.default.createElement("div", {
+          className: "alert alert-success text-center mt-3"
+        }, "There are no resolved claims"),
+        /*#__PURE__*/
+        _react.default.createElement("div", {
+          className: "d-flex justify-content-end"
+        },
+        /*#__PURE__*/
+        _react.default.createElement(_reactRouterDom.Link, {
+          to: "/add",
+          className: "btn btn-primary"
+        }, "Add a new claim"))))
       );
     }
   }]);
@@ -100126,9 +99892,9 @@ var mapStateToProps = function mapStateToProps(state) {
 
   return {
     items: !_lodash.default.isEmpty(items) ? [unresolved.sort(function (a, b) {
-      return (0, _dateFns.compareDesc)(a.created, b.created);
+      return (0, _dateFns.compareDesc)(new Date(a.created), new Date(b.created));
     }), resolved.sort(function (a, b) {
-      return (0, _dateFns.compareDesc)(a.resolved, b.resolved);
+      return (0, _dateFns.compareDesc)(new Date(a.resolved), new Date(b.resolved));
     })] : [],
     alert: (0, _selectors.selectAlert)(state)
   };
@@ -100438,20 +100204,13 @@ function (_Component) {
         return;
       }
 
-      var _e$target$elements = e.target.elements,
-          description = _e$target$elements.description,
-          severity = _e$target$elements.severity,
-          status = _e$target$elements.status; // translate to the correct form
+      var token = e.target.elements.token; // translate to the correct form
 
-      var issue = {
-        description: description.value,
-        severity: severity.value,
-        status: status.value,
-        created: new Date().toISOString(),
-        resolved: status.value === 'closed' ? new Date().toISOString() : ''
+      var item = {
+        token: token.value
       };
 
-      _this.props.addIssue(issue, function () {
+      _this.props.addIssue(item, function (res) {
         _this.props.history.replace('/');
       });
     });
@@ -100465,7 +100224,7 @@ function (_Component) {
       return (
         /*#__PURE__*/
         _react.default.createElement(_Panel.default, {
-          title: "Create a new claim",
+          title: "Validate a new claim",
           panelClass: "bg-primary"
         },
         /*#__PURE__*/
@@ -100476,49 +100235,13 @@ function (_Component) {
         },
         /*#__PURE__*/
         _react.default.createElement(_FormField.default, {
-          labelText: "Description"
+          labelText: "Token"
         },
         /*#__PURE__*/
         _react.default.createElement(_TextField.default, {
-          id: "description",
-          placeholder: "Enter a description",
+          id: "token",
+          placeholder: "Paste token value from broker here...",
           required: true
-        })),
-        /*#__PURE__*/
-        _react.default.createElement(_FormField.default, {
-          labelText: "Severity"
-        },
-        /*#__PURE__*/
-        _react.default.createElement(_SelectField.default, {
-          id: "severity",
-          opts: [{
-            value: 'minor',
-            label: 'Minor'
-          }, {
-            value: 'major',
-            label: 'Major'
-          }, {
-            value: 'critical',
-            label: 'Critical'
-          }]
-        })),
-        /*#__PURE__*/
-        _react.default.createElement(_FormField.default, {
-          labelText: "Status"
-        },
-        /*#__PURE__*/
-        _react.default.createElement(_SelectField.default, {
-          id: "status",
-          opts: [{
-            value: 'open',
-            label: 'Open'
-          }, {
-            value: 'in progress',
-            label: 'In Progress'
-          }, {
-            value: 'closed',
-            label: 'Closed'
-          }]
         })),
         /*#__PURE__*/
         _react.default.createElement(_FormButtons.default, {
@@ -100549,8 +100272,8 @@ var mapStateToProps = function mapStateToProps(state) {
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
-    addIssue: function addIssue(issue, callback) {
-      return (0, _actions.addIssue)(issue, callback, dispatch);
+    addIssue: function addIssue(item, callback) {
+      return (0, _actions.addIssue)(item, callback, dispatch);
     }
   };
 };
@@ -100584,31 +100307,6 @@ var initialState = {
   issues: {},
   alert: ''
 };
-/**
-*/
-
-var hasProp = function hasProp(prop, obj) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-};
-/**
-* @Private - Iterate through props, setting properties on obj
-* if they exist.
-*
-* @param props {Object} - The properties/values to set
-* @param obj {Object} - The object to iterate over
-*/
-
-
-var setProps = function setProps(props, obj) {
-  var clone = _lodash.default.clone(obj);
-
-  Object.keys(props).forEach(function (prop) {
-    if (hasProp(prop, clone)) {
-      clone[prop] = props[prop];
-    }
-  });
-  return clone;
-};
 
 var issuesReducer = function issuesReducer() {
   var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
@@ -100620,16 +100318,6 @@ var issuesReducer = function issuesReducer() {
     case _actions.GET_ISSUES_RECEIVED:
       return _objectSpread(_objectSpread({}, state), {}, {
         issues: action.payload
-      });
-
-    case _actions.ISSUE_EDITED:
-      var id = Object.keys(action.payload).pop();
-
-      var selected = _lodash.default.clone((0, _selectors.selectIssue)(id, state));
-
-      issues[id] = setProps(action.payload[id], selected);
-      return _objectSpread(_objectSpread({}, state), {}, {
-        issues: issues
       });
 
     case _actions.ISSUE_ADDED:
@@ -100699,11 +100387,11 @@ var App = function App() {
     },
     /*#__PURE__*/
     _react.default.createElement("h1", {
-      className: "h2 text-center mt-4 mb-4"
+      className: "h2 text-center mt-4 mb-0"
     }, "Acme Insurance"),
     /*#__PURE__*/
     _react.default.createElement("h2", {
-      className: "h5 text-center mt-4 mb-4"
+      className: "h5 text-center mt-2 mb-4"
     }, "Claims Portal"),
     /*#__PURE__*/
     _react.default.createElement(_reactRouterDom.BrowserRouter, null,
@@ -100765,7 +100453,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53053" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58687" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

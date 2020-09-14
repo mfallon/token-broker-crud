@@ -1,33 +1,23 @@
 import axios from 'axios';
-import _ from 'lodash';
 
 const config = {
   url: '/',
-  baseURL: 'http://localhost:8081', // update when on containers
+  baseURL: 'http://broker-api:8081', // update localhost to broker-api when run on docker
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
   },
 };
 
-const errorHandler = err => {
-  if (err.response) {
-    // handle 4XX, 5XX errors
-    console.log(`Error response ${err.status} from API`, err);
-  } else if (err.request) {
-    // no response
-    console.log('No response from API:', err.request);
-  } else {
-    console.log('Error:', err.message);
-  }
-};
-
 export default {
-  validate: (token, callback) => {
-    axios.get(`/validate?${token}`, {
+  validate: (token, resolve, reject) => {
+    console.log("Axios attempting to validate token " + token);
+    axios.get(`validate/${token}`, {
       ...config
     })
-      .then(res => callback(res))
-      .catch(err => errorHandler(err));
+      .then(res => resolve(res))
+      .catch(err => {
+        reject(err);
+      });
   }
 };

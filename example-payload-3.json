@@ -1,0 +1,16 @@
+{
+ "subject": {
+   "name": "Authur Duff",
+   "address": "12 Fitzwilliam Lane, Dublin 2",
+   "policyNumber": "ZN012345"
+ },
+ "object": {
+   "provider": "Hospital-643",
+   "ref": "inv-19237",
+   "type": "Invoice",
+   "dept": "Haematology",
+   "service": "Blood Samples",
+   "amount": "59.99",
+   "currency": "Euro"
+ }
+}

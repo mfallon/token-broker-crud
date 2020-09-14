@@ -1,6 +1,5 @@
 import api from '../services/api';
 export const GET_ISSUES_RECEIVED = 'GET_ISSUES_RECEIVED';
-export const ISSUE_EDITED = 'ISSUE_EDITED';
 export const ISSUE_ADDED = 'ISSUE_ADDED';
 export const ISSUE_DELETED = 'ISSUE_DELETED';
 export const SET_ALERT = 'SET_ALERT';
@@ -8,13 +7,6 @@ export const SET_ALERT = 'SET_ALERT';
 export const issueAdded = payload => {
   return {
     type: ISSUE_ADDED,
-    payload
-  };
-};
-
-export const issueEdited = payload => {
-  return {
-    type: ISSUE_EDITED,
     payload
   };
 };
@@ -47,30 +39,19 @@ export const getIssues = dispatch => {
   });
 };
 
-export const updateIssue = (id, issue, callback, dispatch) => {
-  api.editIssue(id, issue, res => {
-    const { id } = res.data;
-    const updated = {};
-    updated[id] = {
-      id,
-      ...issue
-    };
-    dispatch(issueEdited(updated));
-    dispatch(setAlert(`Issue ${id} Updated OK!`));
-    callback();
-  });
-};
-
-export const addIssue = (issue, callback, dispatch) => {
-  api.addIssue(issue, res => {
+export const addIssue = (item, callback, dispatch) => {
+  api.addIssue(item, res => {
     const { id } = res.data;
     const added = {};
     added[id] = {
       id,
-      ...issue
+      ...res.data
     };
     dispatch(issueAdded(added));
-    dispatch(setAlert(`Issue ${id} Added OK!`));
+    dispatch(setAlert(`Claim Added OK!`));
+    callback();
+  }, err => {
+    dispatch(setAlert(`Could not create claim: error with provided code`));
     callback();
   });
 };
@@ -78,7 +59,7 @@ export const addIssue = (issue, callback, dispatch) => {
 export const deleteIssue = (id, dispatch, callback) => {
   api.deleteIssue(id, res => {
     dispatch(issueDeleted(id));
-    dispatch(setAlert(`Issue ${id} Deleted!`));
+    dispatch(setAlert(`Claim Deleted!`));
     callback();
   });
 };

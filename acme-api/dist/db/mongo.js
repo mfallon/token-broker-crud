@@ -1,8 +1,6 @@
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+exports.__esModule = true;
 exports["default"] = void 0;
 
 var _mongodb = require("mongodb");
@@ -13,11 +11,7 @@ var _conf = _interopRequireDefault(require("./conf"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
 /**
  * Mongo Wrappers
@@ -81,13 +75,13 @@ var mongoDeleteOne = function mongoDeleteOne(id, db, callback) {
 
 var format = {
   date: function date(dateStr) {
-    return !isNaN(new Date(dateStr).getTime()) ? "".concat(new Date(dateStr).toLocaleString()) : '';
+    return !isNaN(new Date(dateStr).getTime()) ? "" + new Date(dateStr).toLocaleString() : '';
   }
 };
 
 var formatter = function formatter(items) {
   return items.map(function (item) {
-    return _objectSpread(_objectSpread({}, item), {}, {
+    return _extends({}, item, {
       id: item._id,
       // remap for frontend
       created: format.date(item.created),
@@ -120,6 +114,7 @@ var getAll = function getAll() {
 
 
 var save = function save(payload) {
+  // TODO: connect to broker api to see if we have a token present
   return new Promise(function (resolve, reject) {
     _mongodb.MongoClient.connect(_conf["default"].host, _conf["default"].options, function (err, client) {
       if (err) {
@@ -128,7 +123,7 @@ var save = function save(payload) {
         var db = client.db(_conf["default"].db);
         mongoInsertOne(payload, db, function (res) {
           var insertedId = res.insertedId;
-          resolve("".concat(insertedId));
+          resolve("" + insertedId);
           client.close();
         });
       }
@@ -148,7 +143,7 @@ var get = function get(id) {
       } else {
         var db = client.db(_conf["default"].db);
         mongoFindOne(id, db, function (res) {
-          var result = _objectSpread(_objectSpread({}, res), {}, {
+          var result = _extends({}, res, {
             created: format.date(res.created),
             resolved: format.date(res.resolved)
           });
@@ -175,7 +170,7 @@ var update = function update(id, payload) {
         mongoUpdateOne(id, {
           $set: payload
         }, db, function (res) {
-          resolve("".concat(id));
+          resolve("" + id);
           client.close();
         });
       }
@@ -196,7 +191,7 @@ var remove = function remove(id) {
         var db = client.db(_conf["default"].db);
         mongoDeleteOne(id, db, function (res) {
           var result = res.result;
-          resolve("Deleted ".concat(result.n, " record with id: ").concat(id));
+          resolve("Deleted " + result.n + " record with id: " + id);
           client.close();
         });
       }

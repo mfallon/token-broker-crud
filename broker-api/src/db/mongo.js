@@ -1,81 +1,21 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import assert from 'assert';
 import conf from './conf';
+import { generateToken } from '../lib/utils';
 
-/**
- * Mongo Wrappers
- */
-const mongoFindAll = (db, callback) => {
-  const collection = db.collection(conf.collection);
-  collection.find({}).toArray((err, result) => {
-    assert.equal(err, null);
-    callback(result);
-  });
-};
-
-const mongoInsertOne = (record, db, callback) => {
-  const collection = db.collection(conf.collection);
-  collection.insertOne(record, (err, result) => {
-    assert.equal(err, null);
-    callback(result);
-  });
-};
-
-const mongoFindOne = (id, db, callback) => {
-  const collection = db.collection(conf.collection);
-  collection.findOne(ObjectId(id), (err, result) => {
-    assert.equal(err, null);
-    callback(result);
-  });
-};
-
-const mongoUpdateOne = (id, set, db, callback) => {
-  const collection = db.collection(conf.collection);
-  collection.updateOne({ _id: ObjectId(id) }, set, (err, result) => {
-    assert.equal(err, null);
-    assert.equal(1, result.result.n);
-    callback(result);
-  });
-};
-
-const mongoDeleteOne = (id, db, callback) => {
-  const collection = db.collection(conf.collection);
-  collection.deleteOne({ _id: ObjectId(id) }, (err, result) => {
-    assert.equal(err, null);
-    assert.equal(1, result.result.n);
-    callback(result);
-  });
-};
-
-/**
- * Formatter
- */
-const format = {
-  date: dateStr =>
-    !isNaN(new Date(dateStr).getTime()) ?
-      `${new Date(dateStr).toLocaleString()}`:
-      ''
-};
-
-const formatter = items => items.map(item => ({
-  ...item,
-  id: item._id, // remap for frontend
-  created: format.date(item.created),
-  resolved: format.date(item.resolved)
-}));
-
-/**
- * Module
- */
-const getAll = () => {
+const generate = payload => {
   return new Promise((resolve, reject) => {
     MongoClient.connect(conf.host, conf.options, (err, client) => {
       if (err) {
         reject(err);
       } else {
         const db = client.db(conf.db);
-        mongoFindAll(db, res => {
-          resolve(formatter(res));
+        const collection = db.collection(conf.collection);
+        const token = generateToken();
+        collection.insertOne({ ...payload, token, valid: true, ttl: 604800000 }, (err, result) => {
+          assert.equal(err, null);
+          const { insertedId } = result;
+          resolve(token);
           client.close();
         });
       }
@@ -83,29 +23,7 @@ const getAll = () => {
   });
 };
 
-/**
- */
-const save = payload => {
-  return new Promise((resolve, reject) => {
-    MongoClient.connect(conf.host, conf.options, (err, client) => {
-      if (err) {
-        reject(err);
-      } else {
-        const db = client.db(conf.db);
-        mongoInsertOne(payload, db, res => {
-          const { insertedId } = res;
-          resolve(`${insertedId}`);
-          client.close();
-        });
-      }
-    });
-  });
-};
-
-
-/**
- */
-const get = id => {
+const validate = token => {
   return new Promise((resolve, reject) => {
     MongoClient.connect(conf.host, conf.options, (err, client) => {
       if (err) {
@@ -113,53 +31,20 @@ const get = id => {
         reject(err);
       } else {
         const db = client.db(conf.db);
-        mongoFindOne(id, db, res => {
-          const result = {
-            ...res,
-            created: format.date(res.created),
-            resolved: format.date(res.resolved)
-          };
-          resolve(result);
-          client.close();
-        });
-      }
-    });
-  });
-};
-
-/**
- */
-const update = (id, payload) => {
-  return new Promise((resolve, reject) => {
-    MongoClient.connect(conf.host, conf.options, (err, client) => {
-      if (err) {
-        console.log(err);
-        reject(err);
-      } else {
-        const db = client.db(conf.db);
-        mongoUpdateOne(id, { $set: payload }, db, res => {
-          resolve(`${id}`);
-          client.close();
-        });
-      }
-    });
-  });
-};
-
-/**
- */
-const remove = id => {
-  return new Promise((resolve, reject) => {
-    MongoClient.connect(conf.host, conf.options, (err, client) => {
-      if (err) {
-        console.log(err);
-        reject(err);
-      } else {
-        const db = client.db(conf.db);
-        mongoDeleteOne(id, db, res => {
-          const { result } = res;
-          resolve(`Deleted ${result.n} record with id: ${id}`);
-          client.close();
+        const collection = db.collection(conf.collection);
+        // here we simply check for token - no ttl checks made
+        collection.findOne({ token: { $eq: token }, valid: { $eq: true } }, (err, found) => {
+          assert.equal(err, null);
+          // invalidate token as soon as we have found it
+          if (found) {
+            const { _id } = found;
+            collection.updateOne({ _id: ObjectId(_id) }, { $set: { valid: false } }, (err, result) => {
+              assert.equal(err, null);
+              assert.equal(1, result.result.n);
+              resolve(found);
+            });
+          }
+          resolve(found);
         });
       }
     });
@@ -167,9 +52,6 @@ const remove = id => {
 };
 
 export default {
-  getAll,
-  save,
-  get,
-  update,
-  remove
+  validate,
+  generate
 };

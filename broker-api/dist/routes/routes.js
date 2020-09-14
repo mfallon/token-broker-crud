@@ -10,97 +10,66 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 
 var router = _express["default"].Router();
 /*
- * generate( { {} subject, {} invoice } ): nonce #
- * validate( nonce ): { subject, invoice }
- */
-
-/*
  * TODO: secure communication over https
- */
-
-/**
- * Index - Render listing of Issues
  */
 
 
 router.get('/', function (req, res, next) {
-  /*
-   * return unauthorized
-   */
-
-  /*
-  mongo.getAll()
-    .then(issues => {
-      res.json(issues);
-    })
-    .catch(error => {
-      const message = `Could not getAll() because: ${error}`;
-      console.log(message);
-      res.json({
-        error: message
-      });
-    });
-    */
-  // res.send("reject");
-  console.log("protocol: " + req.protocol);
-  console.log("secure: " + req.secure);
   res.status(404).end();
 });
 /**
  * Create - Post
  */
 
-router.get('/generate', function (req, res) {
-  // req.body contains { subject, invoice }
-
-  /*
-  const {
-    description,
-    severity,
-    created,
-    status
-  } = req.body;
-  if (!description) {
-    res.status(400).end('Bad Request');
-    return;
-  }
-  const payload = {
-    description,
-    severity: severity || 'minor',
-    status: status || 'open',
-    created: created || new Date().toISOString(),
-    resolved: ''
+router.post('/generate', function (req, res) {
+  var _req$body = req.body,
+      subject = _req$body.subject,
+      object = _req$body.object;
+  var payload = {
+    created: new Date().getTime(),
+    ttl: 604800000,
+    data: {
+      subject: subject,
+      object: object
+    }
   };
-  */
 
-  /*
-   * Authorization checks - should have cert attached
-   */
-
-  /*
-  mongo.save(payload)
-    .then(id => {
-      console.log(id);
-      res.status(200).json({
-        id
-      });
-    })
-    .catch(err => {
-      const message = `There was an error saving your issue: ${err}`;
-      console.log(message);
-      res.json({
-        error: message
-      });
+  _mongo["default"].generate(payload).then(function (token) {
+    res.status(200).json({
+      token: token
     });
-  */
-  res.json({
-    status: "/generate"
-  }); // res.send("generate!");
+  })["catch"](function (err) {
+    var message = "There was an error: " + err;
+    console.log(message);
+    res.json({
+      error: message
+    });
+  });
 });
-router.get('/validate', function (req, res) {
-  // extract token/nonce from req params
-  res.json({
-    status: "/validate"
-  }); // res.send("validate!");
+router.get('/validate/:token', function (req, res) {
+  var token = req.params.token;
+
+  _mongo["default"].validate(token).then(function (response) {
+    if (!response) {
+      // if no record of this token found then return 404
+      console.log("Broker says: record not found");
+      res.status(404).end();
+    } else {
+      // return invoice information
+      var _response$data = response.data,
+          subject = _response$data.subject,
+          object = _response$data.object;
+      res.json({
+        subject: subject,
+        object: object
+      });
+    }
+  })["catch"](function (error) {
+    var message = "Could not get() because: " + error;
+    console.log(message);
+    res.json({
+      error: message
+    });
+  });
 });
 module.exports = router;

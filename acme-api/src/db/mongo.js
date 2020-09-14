@@ -60,8 +60,7 @@ const format = {
 const formatter = items => items.map(item => ({
   ...item,
   id: item._id, // remap for frontend
-  created: format.date(item.created),
-  resolved: format.date(item.resolved)
+  created: format.date(item.created)
 }));
 
 /**
@@ -117,8 +116,7 @@ const get = id => {
         mongoFindOne(id, db, res => {
           const result = {
             ...res,
-            created: format.date(res.created),
-            resolved: format.date(res.resolved)
+            created: format.date(res.created)
           };
           resolve(result);
           client.close();

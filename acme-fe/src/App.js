@@ -19,8 +19,8 @@ const store = createStore(
 const App = () => (
   <Provider store={store}>
     <div className="container">
-      <h1 className="h2 text-center mt-4 mb-4">Acme Insurance</h1>
-      <h2 className="h5 text-center mt-4 mb-4">Claims Portal</h2>
+      <h1 className="h2 text-center mt-4 mb-0">Acme Insurance</h1>
+      <h2 className="h5 text-center mt-2 mb-4">Claims Portal</h2>
       <Router>
         <Route exact path="/" component={Claims} />
         <Route path="/add" component={ClaimAdd} />

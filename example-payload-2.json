@@ -1,0 +1,16 @@
+{
+ "subject": {
+   "name": "William Wuxley",
+   "address": "54 Waytown Way, Widdleton",
+   "policyNumber": "YN012345"
+ },
+ "object": {
+   "provider": "Med-987",
+   "ref": "inv-321",
+   "type": "Invoice",
+   "dept": "Orthopaedics",
+   "service": "Fracture Clinic",
+   "amount": "599.65",
+   "currency": "Euro"
+ }
+}

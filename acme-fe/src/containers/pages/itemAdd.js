@@ -28,11 +28,9 @@ class ItemAdd extends Component {
     } = e.target.elements;
     // translate to the correct form
     const item = {
-      token: token.value,
-      created: new Date().toISOString()
+      token: token.value
     };
-    this.props.addIssue(item, () => {
-      // TODO: handle if service says there's no token
+    this.props.addIssue(item, res => {
       this.props.history.replace('/');
     });
   }
@@ -41,11 +39,11 @@ class ItemAdd extends Component {
     const { replace: replaceHistory } = this.props.history;
     return (
       <Panel
-        title="Create a new claim"
+        title="Validate a new claim"
         panelClass="bg-primary"
       >
         <form onSubmit={ this.handleSubmit } className="form-horizontal needs-validation" noValidate>
-          <FormField labelText="QR Code">
+          <FormField labelText="Token">
             <TextField
               id="token"
               placeholder="Paste token value from broker here..."
@@ -75,7 +73,7 @@ ItemAdd.propTypes = {
 const mapStateToProps = state => state;
 
 const mapDispatchToProps = dispatch => ({
-  addIssue: (issue, callback) => addIssue(issue, callback, dispatch)
+  addIssue: (item, callback) => addIssue(item, callback, dispatch)
 });
 
 export default connect(

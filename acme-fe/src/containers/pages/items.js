@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom';
 import _ from 'lodash';
 import {
   format,
-  compareDesc,
-  formatDistance
+  compareDesc
 } from 'date-fns';
 import PropTypes from 'prop-types';
 import Panel from '../../components/organisms/Panel';
@@ -24,9 +23,6 @@ class Items extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      severity: true,
-      status: true,
-      created: true,
       filter: '',
       showAlert: false
     };
@@ -42,7 +38,6 @@ class Items extends Component {
     }
   }
 
-  // trying to capture when the alert message is updated in props
   shouldComponentUpdate(nextProps) {
     if (nextProps.alert !== this.props.alert) {
       this.setAlertTimeout();
@@ -55,13 +50,6 @@ class Items extends Component {
     setTimeout(() => {
       this.setState({ showAlert: false });
     }, ms);
-  }
-
-  setToggle = evt => {
-    const { id } = evt.target;
-    const toggle = {};
-    toggle[id] = evt.target.checked
-    this.setState(toggle);
   }
 
   setFilter = evt => {
@@ -82,23 +70,23 @@ class Items extends Component {
   render() {
     const { items, deleteIssue, alert } = this.props;
     const { push: pushHistory } = this.props.history;
-    const { severity, status, created, showAlert } = this.state;
+    const { showAlert } = this.state;
 
-    const [ unresolved, resolved ] = items;
+    const [ resolved, unresolved ] = items;
 
-    const unresolvedFiltered = !_.isEmpty(this.state.filter) ?
-      unresolved.filter(item=> new RegExp(`${this.state.filter}`, 'i').test(item.description)) :
-      unresolved;
+    const resolvedFiltered = !_.isEmpty(this.state.filter) ?
+      resolved.filter(item=> new RegExp(`${this.state.filter}`, 'i').test(item.description)) :
+      resolved;
 
     return (
       <div className="container">
         { showAlert && <Alert message={ alert } /> }
-        <Panel title="Unresolved Claims" panelClass="bg-primary">
-          { !_.isEmpty(unresolvedFiltered) && <div>
+       <Panel title="Resolved Claims" panelClass="bg-primary">
+         <div>
             <div className='row filter'>
               <label htmlFor="filter" className="col-sm-4 control-label">Filter by Description:</label>
               <div className='col-sm-8'>
-                <input type="text" className="form-control form-control-filter" id="filter" name="filter" placeholder="filter issues by any word" onChange={this.setFilter} />
+                <input type="text" className="form-control form-control-filter" id="filter" name="filter" placeholder="filter claims by description" onChange={this.setFilter} />
                 <button
                   type="button"
                   className="close"
@@ -115,78 +103,36 @@ class Items extends Component {
                 </button>
               </div>
             </div>
-            <div className='row filter pt-2'>
-              <label className="col-sm-5 control-label">Show/Hide Columns:</label>
-              <div className="col-sm-2 form-check">
-                <input className="form-check-input" type="checkbox" id="severity" name="severity" checked={severity} onChange={this.setToggle} />
-                <label className="form-check-label" htmlFor="severity">Severity</label>&nbsp;
-              </div>
-              <div className="col-sm-2 form-check">
-                <input className="form-check-input" type="checkbox" id="status" name="status" checked={status} onChange={this.setToggle} />
-                <label className="form-check-label" htmlFor="status">Status</label>&nbsp;
-              </div>
-              <div className="col-sm-2 form-check">
-                <input className="form-check-input" type="checkbox" id="created" name="created" checked={created} onChange={this.setToggle} />
-                <label className="form-check-label" htmlFor="created">Created</label>&nbsp;
-              </div>
-            </div>
+          </div>
+          { !_.isEmpty(resolvedFiltered) && <div className="mt-3">
             <table className='table table-striped table-condensed'>
               <thead className="text-white bg-secondary">
                 <tr>
                   <th>Description</th>
-                  { severity && <th style={{minWidth: '80px'}}>Severity</th> }
-                  { status && <th style={{minWidth: '80px'}}>Status</th> }
-                  { created && <th style={{minWidth: '80px'}}>Created</th> }
-                  <th> </th>
+                  <th>Amount</th>
+                  <th>Issued</th>
                   <th> </th>
                 </tr>
               </thead>
               <tbody>
-                { unresolvedFiltered.map(item => {
+                { resolvedFiltered.map(item => {
                   return (<tr key={item.id}>
-                    <td><Link to={`/detail/${item.id}`}>{ item.description }</Link></td>
-                    { severity && <td><span className={`badge badge-secondary ${ item.severity === 'major' ? 'badge-warning' : item.severity === 'critical' ? 'badge-danger' : ''}`}>{ item.severity }</span></td> }
-                    { status && <td><span className={`badge badge-secondary ${ item.status === 'in progress' ? 'badge-success' : item.status === 'open' ? 'badge-primary' : ''}`}>{ item.status }</span></td> }
-                    { created && <td>{`${formatDistance(new Date(item.created), new Date())} ago`}</td> }
-                    <td><button onClick={ () => pushHistory(`/edit/${item.id}`) } className="btn btn-sm btn-outline-primary">Edit</button></td>
+                    <td>{ item.description }</td>
+                    <td>{ item.currency + ' ' + item.amount}</td>
+                    <td>{`${item.created ? format(new Date(item.created),"dd/MM/yyyy") : ''}`}</td>
                     <td><button onClick={ () => deleteIssue(item.id, this.setAlertTimeout) } className="btn btn-sm btn-outline-danger">Delete</button></td>
                   </tr>)})}
               </tbody>
             </table>
           </div> }
-          { _.isEmpty(unresolvedFiltered) && <div className="alert alert-success text-center">
-            There are no unresolved claims
+          { _.isEmpty(resolvedFiltered) && <div className="alert alert-success text-center mt-3">
+            There are no resolved claims
           </div> }
           <div className="d-flex justify-content-end">
             <Link to="/add" className="btn btn-primary">Add a new claim</Link>
           </div>
         </Panel>
-        { !_.isEmpty(resolved) && <Panel title="Resolved Claims" panelClass="bg-success">
-          <table className='table table-striped table-condensed'>
-            <thead className="text-white bg-secondary">
-              <tr>
-                <th>Description</th>
-                <th>Severity</th>
-                <th>Created</th>
-                <th>Closed</th>
-                <th></th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              { resolved.map(item => {
-                return (<tr key={item.id}>
-                  <td><Link to={`/detail/${item.id}`}>{ item.description }</Link></td>
-                  <td><span className={`badge badge-secondary ${ item.severity === 'major' ? 'badge-warning' : item.severity === 'critical' ? 'badge-danger' : ''}`}>{ item.severity }</span></td>
-                  <td>{`${format(item.created, 'Do [of] MMM \'YY')}`}</td>
-                  <td>{`${format(item.resolved, 'Do [of] MMM \'YY')}`}</td>
-                  <td><button onClick={ () => pushHistory(`/edit/${item.id}`) } className="btn btn-sm btn-outline-primary">Edit</button></td>
-                  <td><button onClick={ () => deleteIssue(item.id, this.setAlertTimeoout) } className="btn btn-sm btn-outline-danger">Delete</button></td>
-                </tr>)})}
-            </tbody>
-          </table>
-        </Panel> }
-      </div>
+    </div>
     );
   }
 }
@@ -210,8 +156,8 @@ const mapStateToProps = state => {
   }, [[], []]);
   return {
     items: !_.isEmpty(items) ? [
-      unresolved.sort((a, b) => compareDesc(a.created, b.created)),
-      resolved.sort((a, b) => compareDesc(a.resolved, b.resolved))
+      unresolved.sort((a, b) => compareDesc(new Date(a.created), new Date(b.created))),
+      resolved.sort((a, b) => compareDesc(new Date(a.resolved), new Date(b.resolved)))
     ] : [],
     alert: selectAlert(state)
   };

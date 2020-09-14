@@ -39,6 +39,6 @@ app.use(function (err, req, res, next) {
 var HOST = "0.0.0.0";
 var PORT = "8080";
 app.listen(PORT, HOST, function () {
-  console.log("Acme API listening on ".concat(HOST, ":").concat(PORT));
+  console.log("Acme API listening on " + HOST + ":" + PORT);
 });
 module.exports = app;

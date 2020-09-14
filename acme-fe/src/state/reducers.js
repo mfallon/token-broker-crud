@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import {
   GET_ISSUES_RECEIVED,
-  ISSUE_EDITED,
   ISSUE_ADDED,
   ISSUE_DELETED,
   SET_ALERT
@@ -16,28 +15,6 @@ const initialState = {
   alert: ''
 };
 
-/**
-*/
-const hasProp = (prop, obj) => Object.prototype.hasOwnProperty.call(obj, prop);
-
-/**
-* @Private - Iterate through props, setting properties on obj
-* if they exist.
-*
-* @param props {Object} - The properties/values to set
-* @param obj {Object} - The object to iterate over
-*/
-const setProps = (props, obj) => {
-  const clone = _.clone(obj);
-  Object.keys(props).forEach((prop) => {
-    if (hasProp(prop, clone)) {
-      clone[prop] = props[prop];
-    }
-  });
-  return clone;
-};
-
-
 const issuesReducer = (state = initialState, action) => {
   const issues = _.clone(selectIssues(state));
   switch (action.type) {
@@ -45,14 +22,6 @@ const issuesReducer = (state = initialState, action) => {
       return {
         ...state,
         issues: action.payload
-      };
-    case ISSUE_EDITED:
-      const id = Object.keys(action.payload).pop();
-      const selected = _.clone(selectIssue(id, state));
-      issues[id] = setProps(action.payload[id], selected);
-      return {
-        ...state,
-        issues
       };
     case ISSUE_ADDED:
       return {
